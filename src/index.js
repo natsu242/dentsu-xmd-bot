@@ -1,8 +1,7 @@
 'use strict'
 
   process.on('uncaughtException', (err) => {
-    console.error('FATAL:', err.message)
-    console.error(err.stack)
+    console.error('FATAL:', err.message, err.stack)
     process.exit(1)
   })
   process.on('unhandledRejection', (reason) => {
@@ -10,6 +9,15 @@
     process.exit(1)
   })
 
+  // ── Baileys chargé UNE SEULE FOIS au démarrage ───────────
+  const {
+    makeWASocket,
+    useMultiFileAuthState,
+    delay,
+    Browsers,
+    DisconnectReason
+  } = require('@whiskeysockets/baileys')
+  const pino    = require('pino')
   const express = require('express')
   const cors    = require('cors')
   const path    = require('path')
@@ -27,6 +35,7 @@
   const pairingSessions = new Map()
   const MAX_SESSIONS    = 50
 
+  // ── COMMANDS ─────────────────────────────────────────────
   const commands = {
     menu:      { desc: 'Afficher le menu principal',        category: 'General' },
     ping:      { desc: 'Vérifier si le bot est actif',      category: 'General' },
@@ -58,9 +67,9 @@
       if (!cats[info.category]) cats[info.category] = []
       cats[info.category].push({ cmd, desc: info.desc })
     }
-    const now  = new Date()
-    const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-    const date = now.toLocaleDateString('fr-FR')
+    const now   = new Date()
+    const time  = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    const date  = now.toLocaleDateString('fr-FR')
     const icons = { General: '🌐', Media: '🎵', Groupe: '👥', Admin: '🛡️', Bot: '🤖' }
     let menu = '╔══════════════════╗\n║  🔥 ' + BOT_NAME + ' 🔥  ║\n╚══════════════════╝\n\n'
     menu += '👤 *Utilisateur:* ' + senderName + '\n🕐 *Heure:* ' + time + ' | 📅 ' + date + '\n⚡ *Préfixe:* ' + PREFIX + '\n\n━━━━━━━━━━━━━━━━━━━\n\n'
@@ -73,63 +82,86 @@
     return menu
   }
 
+  // ── API STATUS ────────────────────────────────────────────
   app.get('/api/status', (_req, res) => {
     res.json({ active: pairingSessions.size, limit: MAX_SESSIONS, status: 'online' })
   })
 
+  // ── PAIRING CODE — corrigé ────────────────────────────────
   app.post('/api/pair', async (req, res) => {
     const { number } = req.body
     if (!number) return res.status(400).json({ error: 'Numéro requis' })
+
+    // Nettoyer : garder uniquement les chiffres
     const clean = number.replace(/[^0-9]/g, '')
-    if (clean.length < 7) return res.status(400).json({ error: 'Numéro invalide' })
-    if (pairingSessions.size >= MAX_SESSIONS) return res.status(503).json({ error: 'Serveur plein' })
+    if (clean.length < 7)  return res.status(400).json({ error: 'Numéro invalide — inclure le code pays (ex: 2126XXXXXXXX)' })
+    if (pairingSessions.size >= MAX_SESSIONS) return res.status(503).json({ error: 'Serveur plein — réessayez plus tard' })
 
     const sessionId   = 'pair_' + clean + '_' + Date.now()
     const sessionPath = path.join('/tmp', sessionId)
 
-    try {
-      const { makeWASocket, useMultiFileAuthState, delay } = require('@whiskeysockets/baileys')
-      const pino = require('pino')
+    let sock = null
 
+    try {
       const { state, saveCreds } = await useMultiFileAuthState(sessionPath)
-      const sock = makeWASocket({
+
+      sock = makeWASocket({
+        version: [2, 3000, 1015901307],
         auth: state,
         printQRInTerminal: false,
         logger: pino({ level: 'silent' }),
-        browser: [BOT_NAME, 'Chrome', '1.0.0'],
+        // Fingerprint standard Ubuntu Chrome — WhatsApp l'accepte
+        browser: Browsers.ubuntu('Chrome'),
+        // Désactiver les fonctions inutiles pour la génération de code
+        syncFullHistory: false,
+        markOnlineOnConnect: false,
+        generateHighQualityLinkPreview: false,
+        getMessage: async () => undefined,
       })
 
       pairingSessions.set(sessionId, sock)
       sock.ev.on('creds.update', saveCreds)
-      await delay(1500)
 
+      // Attendre que le socket soit prêt à faire la requête
+      await delay(3000)
+
+      // requestPairingCode — numéro en chiffres purs, sans @s.whatsapp.net
       const code = await sock.requestPairingCode(clean)
 
-      sock.ev.on('connection.update', ({ connection }) => {
-        if (connection === 'close' || connection === 'open') {
-          pairingSessions.delete(sessionId)
-          try { sock.end() } catch (_) {}
-        }
-      })
-      setTimeout(() => {
+      console.log('✅ Pairing code generated for', clean, ':', code)
+
+      // Nettoyer après 2 minutes
+      const cleanup = () => {
         pairingSessions.delete(sessionId)
         try { sock.end() } catch (_) {}
-      }, 120000)
+      }
 
-      return res.json({ code, number: clean })
+      sock.ev.on('connection.update', ({ connection }) => {
+        if (connection === 'open' || connection === 'close') cleanup()
+      })
+      setTimeout(cleanup, 120000)
+
+      // Formater le code : XXXXXXXX → XXXX-XXXX
+      const raw = (code || '').replace(/-/g, '')
+      const formatted = raw.length >= 8 ? raw.slice(0, 4) + '-' + raw.slice(4, 8) : code
+
+      return res.json({ code: formatted, raw: code, number: clean })
 
     } catch (err) {
       pairingSessions.delete(sessionId)
-      console.error('Pair error:', err.message, err.stack)
-      return res.status(500).json({ error: 'Échec de génération. Vérifiez le numéro.' })
+      if (sock) try { sock.end() } catch (_) {}
+      console.error('❌ Pair error:', err.message)
+      console.error(err.stack)
+      return res.status(500).json({ error: 'Échec: ' + err.message })
     }
   })
 
+  // ── FRONTEND ──────────────────────────────────────────────
   app.get('*', (_req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'))
   })
 
   app.listen(PORT, () => {
-    console.log('✅ ' + BOT_NAME + ' running on port ' + PORT)
+    console.log('✅ ' + BOT_NAME + ' server ready on port ' + PORT)
   })
   

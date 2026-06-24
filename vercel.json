@@ -1,18 +1,21 @@
 {
-    "version": 2,
-    "outputDirectory": "public",
-    "rewrites": [
-      {
-        "source": "/api/:path*",
-        "destination": "https://dentsu-xmd-bot.onrender.com/api/:path*"
-      }
-    ],
-    "headers": [
-      {
-        "source": "/(.*)",
-        "headers": [
-          { "key": "Access-Control-Allow-Origin", "value": "*" }
-        ]
-      }
-    ]
-  }
+  "version": 2,
+  "builds": [
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://dentsu-xmd-bot.onrender.com/api/:path*"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
+}

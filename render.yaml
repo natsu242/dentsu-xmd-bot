@@ -1,0 +1,10 @@
+services:
+    - type: web
+      name: dentsu-xmd-bot
+      runtime: node
+      buildCommand: npm install --legacy-peer-deps
+      startCommand: node src/index.js
+      envVars:
+        - key: NODE_VERSION
+          value: 20.18.0
+  

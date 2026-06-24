@@ -1,20 +1,23 @@
 {
-    "name": "dentsu-xmd-bot",
-    "version": "1.0.0",
-    "description": "WhatsApp Bot Pairing Code Generator",
-    "type": "module",
-    "main": "src/index.js",
-    "scripts": {
-      "start": "node src/index.js",
-      "dev": "node src/index.js"
-    },
-    "dependencies": {
-      "@whiskeysockets/baileys": "npm:@trashcore/baileys@latest",
-      "express": "^4.18.2",
-      "cors": "^2.8.5",
-      "pino": "^8.19.0"
-    },
-    "engines": {
-      "node": "20.x"
-    }
+  "name": "dentsu-xmd-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp Bot Pairing Code Generator",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "npm:@trashcore/baileys@latest",
+    "@hapi/boom": "^7.2.0",
+    "node-cache": "^5.1.2",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "pino": "^8.19.0",
+    "qrcode": "^1.5.3",
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": "20.x"
   }
+}

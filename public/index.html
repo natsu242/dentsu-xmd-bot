@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DENTSU-XMD | Pairing Code</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="https://img.icons8.com/color/48/whatsapp--v1.png" />
+</head>
+<body>
+  <div class="bg-blur"></div>
+
+  <div class="card">
+    <div class="logo-wrap">
+      <div class="logo-circle">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#00cfff" stroke="#00cfff" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <h1 class="title">DENTSU-XMD</h1>
+    <p class="subtitle">Générer votre code de jumelage</p>
+
+    <div class="server-box">
+      <div class="server-left">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="3" width="20" height="7" rx="2" stroke="#00cfff" stroke-width="1.8"/>
+          <rect x="2" y="14" width="20" height="7" rx="2" stroke="#00cfff" stroke-width="1.8"/>
+          <circle cx="6" cy="6.5" r="1" fill="#00cfff"/>
+          <circle cx="6" cy="17.5" r="1" fill="#00cfff"/>
+        </svg>
+        <div>
+          <span class="server-name">Serveur Principal</span>
+          <div class="server-meta">
+            <span class="dot green"></span>
+            <span id="active-count">Active: --</span>
+            <span class="sep">|</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="margin-right:3px">
+              <path d="M12 2v20M2 12h20" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span id="limit-count">Limit: --/50</span>
+          </div>
+        </div>
+      </div>
+      <div class="badge-online">En ligne</div>
+    </div>
+
+    <div class="info-box">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="#00cfff" stroke-width="1.8"/>
+        <path d="M12 8v4M12 16h.01" stroke="#00cfff" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <p>Entrez votre numéro WhatsApp pour générer instantanément un code de jumelage. <strong>Aucun déploiement requis !</strong></p>
+    </div>
+
+    <label class="input-label">Numéro WhatsApp</label>
+    <div class="input-wrap">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.03 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" stroke="#00cfff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <input
+        id="phone-input"
+        type="tel"
+        placeholder="2126XXXXXXXX"
+        autocomplete="off"
+      />
+    </div>
+    <p class="hint">Inclure le code pays (ex: 212 pour Maroc, 33 pour France, 225 pour CI)</p>
+
+    <button id="pair-btn" onclick="generateCode()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Générer le code
+    </button>
+
+    <div id="result-box" class="result-box hidden">
+      <p class="result-label">Votre code de jumelage</p>
+      <div id="code-display" class="code-display">----</div>
+      <p class="result-hint">Entrez ce code dans WhatsApp → Appareils liés → Lier un appareil</p>
+      <button class="copy-btn" onclick="copyCode()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <rect x="9" y="9" width="13" height="13" rx="2" stroke="white" stroke-width="2"/>
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="white" stroke-width="2"/>
+        </svg>
+        Copier le code
+      </button>
+    </div>
+
+    <div id="error-box" class="error-box hidden">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="#ff5555" stroke-width="2"/>
+        <path d="M12 8v4M12 16h.01" stroke="#ff5555" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span id="error-msg">Erreur</span>
+    </div>
+
+    <footer>© 2026 DENTSU-XMD | Powered By NATSU242</footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
